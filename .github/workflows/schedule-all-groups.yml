@@ -1,0 +1,132 @@
+name: Run schedule for all groups
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  monitor-group-1:
+    runs-on: ubuntu-latest
+    environment: group-1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install chromium
+
+      - name: Run schedule for Group 1
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REGION: ${{ secrets.REGION_GROUP1 }}
+          GROUP: ${{ secrets.GROUP1 }}
+          GROUP_LABEL: ${{ secrets.GROUP_LABEL }}
+        run: node ./src/schedule.js
+
+      - name: Commit artifact for Group 1
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add artifacts/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update artifact group-1"
+            git pull origin main --rebase || true
+            git push origin HEAD
+          fi
+
+  monitor-group-2:
+    runs-on: ubuntu-latest
+    environment: group-2
+    needs: monitor-group-1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install chromium
+
+      - name: Run schedule for Group 2
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REGION: ${{ secrets.REGION_GROUP2 }}
+          GROUP: ${{ secrets.GROUP2 }}
+          GROUP_LABEL: ${{ secrets.GROUP_LABEL }}
+        run: node ./src/schedule.js
+
+      - name: Commit artifact for Group 2
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add artifacts/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update artifact group-2"
+            git pull origin main --rebase || true
+            git push origin HEAD
+          fi
+
+  monitor-group-3:
+    runs-on: ubuntu-latest
+    environment: group-3
+    needs: monitor-group-2
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npx playwright install chromium
+
+      - name: Run schedule for Group 3
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REGION: ${{ secrets.REGION_GROUP3 }}
+          GROUP: ${{ secrets.GROUP3 }}
+          GROUP_LABEL: ${{ secrets.GROUP_LABEL }}
+        run: node ./src/schedule.js
+
+      - name: Commit artifact for Group 3
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add artifacts/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update artifact group-3"
+            git pull origin main --rebase || true
+            git push origin HEAD
+          fi
