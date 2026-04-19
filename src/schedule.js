@@ -88,40 +88,48 @@ const getShutdownsData = async () => {
 function generateSchedule({ data, today }) {
   console.log("🌀 Generating schedule...")
 
-  try {
-    const hoursStates = data?.[today]?.[GROUP]
-    const [schedule, setSchedule] = useSchedule([])
-
-    hours.forEach((hour) => {
-      const state = hoursStates[hour + 1]
-
-      switch (state) {
-        case PowerState.ON:
-          setSchedule(createPeriod({ hour, power: true }))
-          break
-
-        case PowerState.OFF:
-          setSchedule(createPeriod({ hour, power: false }))
-          break
-
-        case PowerState.HALF_ON:
-          setSchedule(createPeriod({ hour, endMin: 30, power: true }))
-          setSchedule(createPeriod({ hour, startMin: 30, power: false }))
-          break
-
-        case PowerState.HALF_OFF:
-          setSchedule(createPeriod({ hour, endMin: 30, power: false }))
-          setSchedule(createPeriod({ hour, startMin: 30, power: true }))
-          break
-      }
-    })
-
-    console.log("✅ Generating schedule finished.")
-
-    return schedule
-  } catch (error) {
-    throw Error(`❌ Generating schedule failed: ${error.message}.`)
+  const todayData = data?.[today]
+  if (!todayData) {
+    throw Error(`❌ No schedule data for ${today}.`)
   }
+
+  const hoursStates = todayData[GROUP]
+  const [schedule, setSchedule] = useSchedule([])
+
+  if (!hoursStates) {
+    console.log(`ℹ️ Групи ${GROUP} немає у розкладі на ${today} — весь день зі світлом.`)
+    hours.forEach((hour) => setSchedule(createPeriod({ hour, power: true })))
+    console.log("✅ Generating schedule finished.")
+    return schedule
+  }
+
+  hours.forEach((hour) => {
+    const state = hoursStates[hour + 1]
+
+    switch (state) {
+      case PowerState.ON:
+        setSchedule(createPeriod({ hour, power: true }))
+        break
+
+      case PowerState.OFF:
+        setSchedule(createPeriod({ hour, power: false }))
+        break
+
+      case PowerState.HALF_ON:
+        setSchedule(createPeriod({ hour, endMin: 30, power: true }))
+        setSchedule(createPeriod({ hour, startMin: 30, power: false }))
+        break
+
+      case PowerState.HALF_OFF:
+        setSchedule(createPeriod({ hour, endMin: 30, power: false }))
+        setSchedule(createPeriod({ hour, startMin: 30, power: true }))
+        break
+    }
+  })
+
+  console.log("✅ Generating schedule finished.")
+
+  return schedule
 }
 
 function computeStats(schedule) {
